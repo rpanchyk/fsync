@@ -1,6 +1,6 @@
 # File Sync Utility
 
-fsync is a file transfer program capable of local update.
+The `fsync` is a file transfer program capable of local update.
 
 ## Usage
 
