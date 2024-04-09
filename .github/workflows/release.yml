@@ -20,7 +20,7 @@ jobs:
 
       - name: Install tools
         run: |
-          sudo apt update
+          # sudo apt update
           sudo apt -y install make zip
 
       - name: Build
@@ -30,6 +30,7 @@ jobs:
         run: go test -v ./...
 
       - name: Create binaries
+        if: startsWith(github.ref, 'refs/tags/')
         run: make build
 
       - name: Release
