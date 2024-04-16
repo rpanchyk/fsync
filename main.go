@@ -1,7 +1,7 @@
 package main
 
 import (
-	"rpanchyk/fsync/cmd"
+	"github.com/rpanchyk/fsync/cmd"
 )
 
 func main() {

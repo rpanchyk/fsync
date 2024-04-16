@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"rpanchyk/fsync/internal/service"
 
+	"github.com/rpanchyk/fsync/internal/service"
 	"github.com/spf13/cobra"
 )
 

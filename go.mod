@@ -1,4 +1,4 @@
-module rpanchyk/fsync
+module github.com/rpanchyk/fsync
 
 go 1.22.2
 
