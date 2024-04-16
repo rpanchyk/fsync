@@ -6,13 +6,19 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Syncer struct {
 	VerboseFlag bool
 }
 
-func (s *Syncer) Copy(src, dst string) error {
+func (s *Syncer) Copy(argSrc, argDst string) error {
+	src, dst, err := s.getSrcDstPaths(argSrc, argDst)
+	if err != nil {
+		return err
+	}
+
 	if _, err := os.Stat(src); os.IsNotExist(err) {
 		return errors.New(fmt.Sprint("Source doesn't exist:", src))
 	}
@@ -68,6 +74,43 @@ func (s *Syncer) Copy(src, dst string) error {
 	}
 
 	return nil
+}
+
+func (s *Syncer) getSrcDstPaths(src, dst string) (srcFullPath, dstFullPath string, err error) {
+	currDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	} else {
+		if s.VerboseFlag {
+			fmt.Println("Current folder:", currDir)
+		}
+	}
+
+	if s.VerboseFlag {
+		fmt.Println("Input source:", src)
+		fmt.Println("Input destination:", dst)
+	}
+
+	srcPath := src
+	if !filepath.IsAbs(srcPath) {
+		srcPath = filepath.Join(currDir, srcPath)
+	}
+	dstPath := dst
+	if !filepath.IsAbs(dstPath) {
+		dstPath = filepath.Join(currDir, dstPath)
+	}
+	if s.VerboseFlag {
+		fmt.Println("Normalized source:", srcPath)
+		fmt.Println("Normalized destination:", dstPath)
+	}
+
+	if strings.HasPrefix(dstPath, srcPath) {
+		msg := fmt.Sprintln("Cannot synchronize because destination", dstPath, "is sub-folder of source", srcPath)
+		return "", "", errors.New(msg)
+	}
+
+	return srcPath, dstPath, nil
 }
 
 func (s *Syncer) isDirectory(path string) (bool, error) {
