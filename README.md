@@ -5,16 +5,17 @@ The `fsync` is a file transfer program capable of local update.
 ## Usage
 
 ```shell
-fsync [OPTION]... SRC DEST
+Usage:
+  fsync [flags] SRC DEST
+
+Flags:
+  -h, --help      help for fsync
+  -v, --verbose   increase verbosity
 ```
 
-where `OPTION` can be:
-- `--help` - show help message
-- `--verbose` - increase verbosity
-
-`SRC` is a source (file or folder) to synchronize.
-
-`DEST` is a destination folder, where source file or folder should be placed.
+where
+- `SRC` is a source (file or folder) to synchronize.
+- `DEST` is a destination folder, where source file or folder should be placed.
 
 ## Development
 
