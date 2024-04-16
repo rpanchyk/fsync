@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"rpanchyk/fsync/internal/service"
-	"rpanchyk/fsync/internal/validation"
 
 	"github.com/spf13/cobra"
 )
@@ -14,17 +13,18 @@ var verboseFlag bool
 //var deleteFlag  bool
 
 var rootCmd = &cobra.Command{
-	Use:   "fsync",
-	Short: "fsync is a file transfer program capable of local update. \nUsage: fsync [OPTION]... SRC DEST",
-	Long: `fsync is a file transfer program capable of local update. \nUsage: fsync [OPTION]... SRC DEST
-
-Attention! Use this tool on your own risk.`,
+	Use:   "fsync [flags] SRC DEST",
+	Short: "fsync is a file transfer program capable of local update.",
+	Long: `fsync is a file transfer program capable of local update.
+Attention! Use this tool on your own risk! Author is not responsible of synced files.`,
+	Args: cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
-		validator := &validation.ArgsValidator{}
-		if err := validator.Validate(args); err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
+		// TODO: remove
+		// validator := &validation.ArgsValidator{}
+		// if err := validator.Validate(args); err != nil {
+		// 	fmt.Println(err.Error())
+		// 	os.Exit(1)
+		// }
 
 		if verboseFlag {
 			fmt.Println("verbose:", verboseFlag)
