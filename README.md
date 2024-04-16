@@ -4,7 +4,7 @@ The `fsync` is a file transfer program capable of local update.
 
 ## Usage
 
-```shell
+```help
 Usage:
   fsync [flags] SRC DEST
 
