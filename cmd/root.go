@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rpanchyk/fsync/internal/checksum"
 	"github.com/rpanchyk/fsync/internal/service"
-	"github.com/rpanchyk/fsync/internal/verify"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 			VerboseFlag: verboseFlag,
 			Source:      args[0],
 			Destination: args[1],
-			Verifier:    &verify.MD5Verifier{},
+			Verifier:    checksum.NewVerifier(checksum.MD5),
 		}
 		if err := syncer.Sync(); err != nil {
 			fmt.Println("Sync failed")

@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rpanchyk/fsync/internal/verify"
+	"github.com/rpanchyk/fsync/internal/checksum"
 )
 
 type Syncer struct {
 	VerboseFlag bool
 	Source      string
 	Destination string
-	Verifier    verify.Verifier
+	Verifier    *checksum.Verifier
 
 	// runtime
 	absoluteSourcePath      string
