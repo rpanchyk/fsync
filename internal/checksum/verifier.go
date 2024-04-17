@@ -48,9 +48,9 @@ func (v Verifier) Same(file1, file2 string) (bool, error) {
 		return false, err
 	}
 
-	sumA := <-outChan
-	sumB := <-outChan
-	return sumA == sumB, nil
+	first := <-outChan
+	last := <-outChan
+	return first == last, nil
 }
 
 func (v Verifier) getSum(filePath string, outChan chan string, errChan chan error) {
