@@ -7,10 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/rpanchyk/fsync/internal/verify"
 )
 
 type Syncer struct {
 	VerboseFlag bool
+
+	Verifier verify.Verifier
 }
 
 func (s *Syncer) Copy(argSrc, argDst string) error {
@@ -140,5 +144,17 @@ func (s *Syncer) copyFile(src, dst string) (int64, error) {
 	defer destination.Close()
 
 	nBytes, err := io.Copy(destination, source)
+	if err != nil {
+		return 0, err
+	}
+
+	ok, err := s.Verifier.Same(src, dst)
+	if err != nil {
+		return 0, err
+	}
+	if !ok {
+		return 0, fmt.Errorf("source %s and destiantion %s differs", src, dst)
+	}
+
 	return nBytes, err
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/rpanchyk/fsync/internal/service"
+	"github.com/rpanchyk/fsync/internal/verify"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,7 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 			fmt.Println()
 		}
 
-		syncer := &service.Syncer{VerboseFlag: verboseFlag}
+		syncer := &service.Syncer{VerboseFlag: verboseFlag, Verifier: &verify.MD5Verifier{}}
 		if err := syncer.Copy(args[0], args[1]); err != nil {
 			fmt.Println("Sync failed")
 			fmt.Println(err.Error())
