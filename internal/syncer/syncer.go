@@ -85,11 +85,11 @@ func (s *Syncer) copy(src, dst string) error {
 		}
 	}
 
-	srcIsDir, err := s.isDirectory(src)
+	srcInfo, err := os.Stat(src)
 	if err != nil {
-		return fmt.Errorf("cannot analyze source: %s", src)
+		return fmt.Errorf("cannot analyze source %s error: %s", src, err.Error())
 	}
-	if srcIsDir {
+	if srcInfo.IsDir() {
 		dirEntries, err := os.ReadDir(src)
 		if err != nil {
 			return fmt.Errorf("cannot get entries of source folder: %s", src)
@@ -127,14 +127,6 @@ func (s *Syncer) copy(src, dst string) error {
 	}
 
 	return nil
-}
-
-func (s *Syncer) isDirectory(path string) (bool, error) {
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-	return fileInfo.IsDir(), err
 }
 
 func (s *Syncer) copyFile(src, dst string) (int64, error) {
