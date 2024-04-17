@@ -14,11 +14,14 @@ import (
 type Syncer struct {
 	VerboseFlag bool
 
+	Source      string
+	Destination string
+
 	Verifier verify.Verifier
 }
 
-func (s *Syncer) Copy(argSrc, argDst string) error {
-	src, dst, err := s.normalizePaths(argSrc, argDst)
+func (s *Syncer) Sync() error {
+	src, dst, err := s.normalizePaths(s.Source, s.Destination)
 	if err != nil {
 		return err
 	}
@@ -31,6 +34,44 @@ func (s *Syncer) Copy(argSrc, argDst string) error {
 		return errors.New(fmt.Sprint("Source doesn't exist:", src))
 	}
 
+	return s.copy(src, dst)
+}
+
+func (s *Syncer) normalizePaths(src, dst string) (string, string, error) {
+	srcPath, err := s.absolutePath(src)
+	if err != nil {
+		return "", "", err
+	}
+
+	dstPath, err := s.absolutePath(dst)
+	if err != nil {
+		return "", "", err
+	}
+
+	if s.VerboseFlag {
+		fmt.Println("Normalized source:", srcPath)
+		fmt.Println("Normalized destination:", dstPath)
+	}
+
+	return srcPath, dstPath, nil
+}
+
+func (s *Syncer) absolutePath(path string) (string, error) {
+	if !filepath.IsAbs(path) {
+		currDir, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		if s.VerboseFlag {
+			fmt.Println("Current folder:", currDir)
+		}
+
+		return filepath.Join(currDir, path), nil
+	}
+	return path, nil
+}
+
+func (s *Syncer) copy(src, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		if err = os.MkdirAll(dst, os.ModeDir); err != nil {
 			return errors.New(fmt.Sprint("Cannot create destination folder:", dst))
@@ -46,15 +87,15 @@ func (s *Syncer) Copy(argSrc, argDst string) error {
 		return errors.New(fmt.Sprint("Cannot analyze source:", src))
 	}
 	if srcIsDir {
-		entries, err := os.ReadDir(src)
+		dirEntries, err := os.ReadDir(src)
 		if err != nil {
 			return errors.New(fmt.Sprint("Cannot get entries of source folder:", src))
 		}
 
-		for _, entry := range entries {
-			entryInfo, err := entry.Info()
+		for _, dirEntry := range dirEntries {
+			entryInfo, err := dirEntry.Info()
 			if err != nil {
-				return errors.New(fmt.Sprint("Cannot get entry info:", entry))
+				return errors.New(fmt.Sprint("Cannot get entry info:", dirEntry))
 			}
 
 			srcPath := filepath.Join(src, entryInfo.Name())
@@ -64,7 +105,7 @@ func (s *Syncer) Copy(argSrc, argDst string) error {
 				dstPath = filepath.Join(dst, entryInfo.Name())
 			}
 
-			err = s.Copy(srcPath, dstPath)
+			err = s.copy(srcPath, dstPath)
 			if err != nil {
 				return err
 			}
@@ -81,37 +122,6 @@ func (s *Syncer) Copy(argSrc, argDst string) error {
 	}
 
 	return nil
-}
-
-func (s *Syncer) normalizePaths(src, dst string) (string, string, error) {
-	currDir, err := os.Getwd()
-	if err != nil {
-		return "", "", err
-	} else {
-		if s.VerboseFlag {
-			fmt.Println("Current folder:", currDir)
-		}
-	}
-
-	if s.VerboseFlag {
-		fmt.Println("Input source:", src)
-		fmt.Println("Input destination:", dst)
-	}
-
-	srcPath := src
-	if !filepath.IsAbs(srcPath) {
-		srcPath = filepath.Join(currDir, srcPath)
-	}
-	dstPath := dst
-	if !filepath.IsAbs(dstPath) {
-		dstPath = filepath.Join(currDir, dstPath)
-	}
-	if s.VerboseFlag {
-		fmt.Println("Normalized source:", srcPath)
-		fmt.Println("Normalized destination:", dstPath)
-	}
-
-	return srcPath, dstPath, nil
 }
 
 func (s *Syncer) isDirectory(path string) (bool, error) {

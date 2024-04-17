@@ -34,8 +34,13 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 			fmt.Println()
 		}
 
-		syncer := &service.Syncer{VerboseFlag: verboseFlag, Verifier: &verify.MD5Verifier{}}
-		if err := syncer.Copy(args[0], args[1]); err != nil {
+		syncer := &service.Syncer{
+			VerboseFlag: verboseFlag,
+			Source:      args[0],
+			Destination: args[1],
+			Verifier:    &verify.MD5Verifier{},
+		}
+		if err := syncer.Sync(); err != nil {
 			fmt.Println("Sync failed")
 			fmt.Println(err.Error())
 			os.Exit(1)
