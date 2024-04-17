@@ -158,9 +158,7 @@ func (s *Syncer) copy(src, dst string) error {
 			return fmt.Errorf("cannot copy file %s to %s", src, dstPath)
 		}
 		if s.VerboseFlag {
-			path, _ := strings.CutPrefix(src, s.absoluteSourcePath)
-			pathRunes := []rune(path)
-			fmt.Println("Copied file", string(pathRunes[1:]), "-->", nBytes, "bytes")
+			fmt.Println("Copied file", s.relativePath(s.absoluteSourcePath, src), "-->", nBytes, "bytes")
 		}
 	}
 
@@ -204,9 +202,9 @@ func (s *Syncer) copyFile(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
-func (s *Syncer) relativePath(parent, current string) string {
-	if path, ok := strings.CutPrefix(current, parent); !ok {
-		return current
+func (s *Syncer) relativePath(parentPath, childPath string) string {
+	if path, ok := strings.CutPrefix(childPath, parentPath); !ok {
+		return childPath
 	} else {
 		pathRunes := []rune(path)
 		return string(pathRunes[1:])
