@@ -11,7 +11,7 @@ import (
 
 var verboseFlag bool
 
-//var deleteFlag  bool
+var deleteFlag bool
 
 var rootCmd = &cobra.Command{
 	Use:   "fsync [flags] SRC DEST",
@@ -36,6 +36,7 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 
 		syncer := &syncer.Syncer{
 			VerboseFlag:      verboseFlag,
+			DeleteFlag:       deleteFlag,
 			Source:           args[0],
 			Destination:      args[1],
 			ChecksumVerifier: checksum.NewVerifier(checksum.MD5),
@@ -59,4 +60,5 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "increase verbosity")
+	rootCmd.PersistentFlags().BoolVarP(&deleteFlag, "delete", "d", false, "delete extraneous files from dest dirs")
 }

@@ -12,6 +12,7 @@ import (
 
 type Syncer struct {
 	VerboseFlag      bool
+	DeleteFlag       bool
 	Source           string
 	Destination      string
 	ChecksumVerifier *checksum.Verifier
@@ -68,7 +69,6 @@ func (s *Syncer) absolutePath(path string) (string, error) {
 		if s.VerboseFlag {
 			fmt.Println("Current folder:", currDir)
 		}
-
 		return filepath.Join(currDir, path), nil
 	}
 	return path, nil
@@ -90,12 +90,14 @@ func (s *Syncer) copy(src, dst string) error {
 		return fmt.Errorf("cannot analyze source %s error: %s", src, err.Error())
 	}
 	if srcInfo.IsDir() {
-		dirEntries, err := os.ReadDir(src)
+		srcDirEntries, err := os.ReadDir(src)
 		if err != nil {
 			return fmt.Errorf("cannot get entries of source folder: %s", src)
 		}
 
-		for _, dirEntry := range dirEntries {
+		srcEntries := make(map[string]struct{})
+
+		for _, dirEntry := range srcDirEntries {
 			entryInfo, err := dirEntry.Info()
 			if err != nil {
 				return fmt.Errorf("cannot get entry info: %s", dirEntry)
@@ -111,6 +113,42 @@ func (s *Syncer) copy(src, dst string) error {
 			err = s.copy(srcPath, dstPath)
 			if err != nil {
 				return err
+			}
+
+			if s.DeleteFlag {
+				relativePath := s.relativePath(s.absoluteSourcePath, srcPath)
+				srcEntries[relativePath] = struct{}{}
+			}
+		}
+
+		if s.DeleteFlag {
+			dstDirEntries, err := os.ReadDir(dst)
+			if err != nil {
+				return fmt.Errorf("cannot get entries of destination folder: %s", dst)
+			}
+
+			for _, dirEntry := range dstDirEntries {
+				entryInfo, err := dirEntry.Info()
+				if err != nil {
+					return fmt.Errorf("cannot get entry info: %s", dirEntry)
+				}
+
+				dstPath := filepath.Join(dst, entryInfo.Name())
+				relativePath := s.relativePath(s.absoluteDestinationPath, dstPath)
+				if _, ok := srcEntries[relativePath]; !ok {
+					var removeFunc func(string) error
+					if dirEntry.IsDir() {
+						removeFunc = os.RemoveAll
+					} else {
+						removeFunc = os.Remove
+					}
+					if err := removeFunc(dstPath); err != nil {
+						return err
+					}
+					if s.VerboseFlag {
+						fmt.Println("Removed extraneous:", dstPath)
+					}
+				}
 			}
 		}
 	} else {
@@ -164,4 +202,13 @@ func (s *Syncer) copyFile(src, dst string) (int64, error) {
 	}
 
 	return nBytes, err
+}
+
+func (s *Syncer) relativePath(parent, current string) string {
+	if path, ok := strings.CutPrefix(current, parent); !ok {
+		return current
+	} else {
+		pathRunes := []rune(path)
+		return string(pathRunes[1:])
+	}
 }
