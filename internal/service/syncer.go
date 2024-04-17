@@ -131,29 +131,30 @@ func (s *Syncer) copyFile(src, dst string) (int64, error) {
 		return 0, fmt.Errorf("%s is not a regular file", src)
 	}
 
-	source, err := os.Open(src)
+	srcFile, err := os.Open(src)
 	if err != nil {
 		return 0, err
 	}
-	defer source.Close()
+	defer srcFile.Close()
 
-	destination, err := os.Create(dst)
+	dstFile, err := os.Create(dst)
 	if err != nil {
 		return 0, err
 	}
-	defer destination.Close()
+	defer dstFile.Close()
 
-	nBytes, err := io.Copy(destination, source)
+	nBytes, err := io.Copy(dstFile, srcFile)
 	if err != nil {
 		return 0, err
 	}
 
+	// https://stackoverflow.com/questions/57850902/is-it-possible-to-calculate-md5-of-the-file-and-write-file-to-the-disk-in-the-sa
 	ok, err := s.Verifier.Same(src, dst)
 	if err != nil {
 		return 0, err
 	}
 	if !ok {
-		return 0, fmt.Errorf("source %s and destiantion %s differs", src, dst)
+		return 0, fmt.Errorf("source %s and destination %s files differ", src, dst)
 	}
 
 	return nBytes, err
