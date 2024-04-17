@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -31,11 +30,11 @@ func (s *Syncer) Sync() error {
 	s.absoluteDestinationPath = dst
 
 	if strings.HasPrefix(dst, src) {
-		return errors.New(fmt.Sprint("Cannot synchronize because destination", dst, "is sub-folder of source", src))
+		return fmt.Errorf("cannot synchronize because destination %s is sub-folder of source %s", dst, src)
 	}
 
 	if _, err := os.Stat(src); os.IsNotExist(err) {
-		return errors.New(fmt.Sprint("Source doesn't exist:", src))
+		return fmt.Errorf("source doesn't exist: %s", src)
 	}
 
 	return s.copy(src, dst)
@@ -78,7 +77,7 @@ func (s *Syncer) absolutePath(path string) (string, error) {
 func (s *Syncer) copy(src, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		if err = os.MkdirAll(dst, os.ModeDir); err != nil {
-			return errors.New(fmt.Sprint("Cannot create destination folder:", dst))
+			return fmt.Errorf("cannot create destination folder: %s", dst)
 		} else {
 			if s.VerboseFlag {
 				fmt.Println("Created destination folder:", dst)
@@ -88,18 +87,18 @@ func (s *Syncer) copy(src, dst string) error {
 
 	srcIsDir, err := s.isDirectory(src)
 	if err != nil {
-		return errors.New(fmt.Sprint("Cannot analyze source:", src))
+		return fmt.Errorf("cannot analyze source: %s", src)
 	}
 	if srcIsDir {
 		dirEntries, err := os.ReadDir(src)
 		if err != nil {
-			return errors.New(fmt.Sprint("Cannot get entries of source folder:", src))
+			return fmt.Errorf("cannot get entries of source folder: %s", src)
 		}
 
 		for _, dirEntry := range dirEntries {
 			entryInfo, err := dirEntry.Info()
 			if err != nil {
-				return errors.New(fmt.Sprint("Cannot get entry info:", dirEntry))
+				return fmt.Errorf("cannot get entry info: %s", dirEntry)
 			}
 
 			srcPath := filepath.Join(src, entryInfo.Name())
@@ -118,7 +117,7 @@ func (s *Syncer) copy(src, dst string) error {
 		dstPath := filepath.Join(dst, filepath.Base(src))
 		nBytes, err := s.copyFile(src, dstPath)
 		if err != nil {
-			return errors.New(fmt.Sprint("Cannot copy file:", src, "to", dstPath))
+			return fmt.Errorf("cannot copy file %s to %s", src, dstPath)
 		}
 		if s.VerboseFlag {
 			path, _ := strings.CutPrefix(src, s.absoluteSourcePath)
