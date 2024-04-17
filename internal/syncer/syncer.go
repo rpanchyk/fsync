@@ -136,14 +136,8 @@ func (s *Syncer) copy(src, dst string) error {
 				dstPath := filepath.Join(dst, entryInfo.Name())
 				relativePath := s.relativePath(s.absoluteDestinationPath, dstPath)
 				if _, ok := srcEntries[relativePath]; !ok {
-					var removeFunc func(string) error
-					if dirEntry.IsDir() {
-						removeFunc = os.RemoveAll
-					} else {
-						removeFunc = os.Remove
-					}
-					if err := removeFunc(dstPath); err != nil {
-						return err
+					if err = s.removeExtraneous(dstPath, dirEntry.IsDir()); err != nil {
+						return fmt.Errorf("cannot remove extraneous: %s error: %s", dstPath, err.Error())
 					}
 					if s.VerboseFlag {
 						fmt.Println("Removed extraneous:", dstPath)
@@ -208,5 +202,13 @@ func (s *Syncer) relativePath(parentPath, childPath string) string {
 	} else {
 		pathRunes := []rune(path)
 		return string(pathRunes[1:])
+	}
+}
+
+func (s *Syncer) removeExtraneous(path string, isDir bool) error {
+	if isDir {
+		return os.RemoveAll(path)
+	} else {
+		return os.Remove(path)
 	}
 }
