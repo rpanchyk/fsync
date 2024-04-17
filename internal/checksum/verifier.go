@@ -1,62 +1,53 @@
 package checksum
 
-import (
-	"sync"
-)
-
 type Verifier struct {
 	checkSum CheckSum
 }
 
+type resultOrError struct {
+	result string
+	err    error
+}
+
 func NewVerifier(checkSumType CheckSumType) *Verifier {
 	verifier := &Verifier{}
+
 	switch checkSumType {
 	case CRC32:
 		verifier.checkSum = &CRC32CheckSum{}
 	case MD5:
-		fallthrough
-	default:
 		verifier.checkSum = &MD5CheckSum{}
+	default:
+		panic("Unknown verification checksum type: " + string(checkSumType))
 	}
+
 	return verifier
 }
 
 func (v Verifier) Same(file1, file2 string) (bool, error) {
-	var wg sync.WaitGroup
-	outChan := make(chan string, 2)
-	errChan := make(chan error, 2)
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		v.getSum(file1, outChan, errChan)
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		v.getSum(file2, outChan, errChan)
-	}()
+	outChan := make(chan resultOrError, 2)
+	defer close(outChan)
 
 	go func() {
-		wg.Wait()
-		close(outChan)
-		close(errChan)
+		v.getCheckSum(file1, outChan)
+	}()
+	go func() {
+		v.getCheckSum(file2, outChan)
 	}()
 
-	for err := range errChan {
-		return false, err
+	first, last := <-outChan, <-outChan
+	if first.err != nil {
+		return false, first.err
+	}
+	if last.err != nil {
+		return false, last.err
 	}
 
-	first := <-outChan
-	last := <-outChan
-	return first == last, nil
+	return first.result == last.result, nil
 }
 
-func (v Verifier) getSum(filePath string, outChan chan string, errChan chan error) {
-	if sum, err := v.checkSum.GetCheckSum(filePath); err != nil {
-		errChan <- err
-	} else {
-		outChan <- sum
-	}
+func (v Verifier) getCheckSum(filePath string, outChan chan resultOrError) {
+	roe := resultOrError{}
+	roe.result, roe.err = v.checkSum.GetCheckSum(filePath)
+	outChan <- roe
 }
