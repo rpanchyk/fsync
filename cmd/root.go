@@ -35,10 +35,10 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 		}
 
 		syncer := &syncer.Syncer{
-			VerboseFlag: verboseFlag,
-			Source:      args[0],
-			Destination: args[1],
-			Verifier:    checksum.NewVerifier(checksum.MD5),
+			VerboseFlag:      verboseFlag,
+			Source:           args[0],
+			Destination:      args[1],
+			ChecksumVerifier: checksum.NewVerifier(checksum.MD5),
 		}
 		if err := syncer.Sync(); err != nil {
 			fmt.Println("Sync failed")

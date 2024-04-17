@@ -11,10 +11,10 @@ import (
 )
 
 type Syncer struct {
-	VerboseFlag bool
-	Source      string
-	Destination string
-	Verifier    *checksum.Verifier
+	VerboseFlag      bool
+	Source           string
+	Destination      string
+	ChecksumVerifier *checksum.Verifier
 
 	// runtime
 	absoluteSourcePath      string
@@ -155,8 +155,7 @@ func (s *Syncer) copyFile(src, dst string) (int64, error) {
 		return 0, err
 	}
 
-	// https://stackoverflow.com/questions/57850902/is-it-possible-to-calculate-md5-of-the-file-and-write-file-to-the-disk-in-the-sa
-	ok, err := s.Verifier.Same(src, dst)
+	ok, err := s.ChecksumVerifier.Same(src, dst)
 	if err != nil {
 		return 0, err
 	}
