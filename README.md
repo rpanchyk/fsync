@@ -9,6 +9,7 @@ Usage:
   fsync [flags] SRC DEST
 
 Flags:
+  -d, --delete    delete extraneous files from dest dirs
   -h, --help      help for fsync
   -v, --verbose   increase verbosity
 ```
@@ -17,12 +18,19 @@ where
 - `SRC` is a source (file or folder) to synchronize.
 - `DEST` is a destination folder, where source file or folder should be placed.
 
+## Why
+
+There is a great tool named `rsync`, but it might be not available (for example, Windows doesn't have it).
+For sure, [cwRsync](https://itefix.net/cwrsync) can be installed and happy used.
+But I'd like to have owns (even if it is much humbler).
+
 ## Development
 
 ### Update dependencies
 
 ```shell
-go mod tidy && go mod vendor
+go mod tidy
+go mod vendor
 ```
 
 ### Build
