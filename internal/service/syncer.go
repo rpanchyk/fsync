@@ -13,11 +13,13 @@ import (
 
 type Syncer struct {
 	VerboseFlag bool
-
 	Source      string
 	Destination string
+	Verifier    verify.Verifier
 
-	Verifier verify.Verifier
+	// runtime
+	absoluteSourcePath      string
+	absoluteDestinationPath string
 }
 
 func (s *Syncer) Sync() error {
@@ -25,6 +27,8 @@ func (s *Syncer) Sync() error {
 	if err != nil {
 		return err
 	}
+	s.absoluteSourcePath = src
+	s.absoluteDestinationPath = dst
 
 	if strings.HasPrefix(dst, src) {
 		return errors.New(fmt.Sprint("Cannot synchronize because destination", dst, "is sub-folder of source", src))
@@ -117,7 +121,9 @@ func (s *Syncer) copy(src, dst string) error {
 			return errors.New(fmt.Sprint("Cannot copy file:", src, "to", dstPath))
 		}
 		if s.VerboseFlag {
-			fmt.Println("Copied file", src, "of", nBytes, "bytes")
+			path, _ := strings.CutPrefix(src, s.absoluteSourcePath)
+			pathRunes := []rune(path)
+			fmt.Println("Copied file", string(pathRunes[1:]), "-->", nBytes, "bytes")
 		}
 	}
 
