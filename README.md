@@ -15,6 +15,7 @@ Flags:
 ```
 
 where
+
 - `SRC` is a source (file or folder) to synchronize.
 - `DEST` is a destination folder, where source file or folder should be placed.
 
@@ -22,7 +23,7 @@ where
 
 There is a great tool named `rsync`, but it might be not available (for example, Windows doesn't have it).
 For sure, [cwRsync](https://itefix.net/cwrsync) can be installed and happy used.
-But I'd like to have owns (even if it is much humbler).
+But I'd like to have owns (even if it is much humbler featured).
 
 ## Development
 
@@ -54,3 +55,19 @@ make build
 ```
 
 It will create `builds` directory with archived binary files according to preconfigured set of platforms.
+
+# Disclaimer
+
+The software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. in no event shall the
+authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in the
+software.
+
+# Contribution
+
+If you have any ideas or inspiration for contributing the project,
+please create an [issue](https://github.com/rpanchyk/fsync/issues/new)
+or [pull request](https://github.com/rpanchyk/fsync/pulls).
