@@ -27,8 +27,8 @@ jobs:
             osname: macosx
             # artifact_name: ${{ github.event.repository.name }}
             asset_name: ${{ github.event.repository.name }}-darwin-arm64.zip
-    runs-on: ${{ matrix.os }}
-    # runs-on: ubuntu-latest
+    # runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Go
         uses: actions/setup-go@v4
