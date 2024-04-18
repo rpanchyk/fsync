@@ -8,20 +8,34 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: ${{ github.event.repository.name }}
+            asset_name: ${{ github.event.repository.name }}-linux-amd64.zip
+          - os: windows-latest
+            artifact_name: ${{ github.event.repository.name }}.exe
+            asset_name: ${{ github.event.repository.name }}-windows-amd64.zip
+          - os: macos-latest
+            artifact_name: ${{ github.event.repository.name }}
+            asset_name: ${{ github.event.repository.name }}-macos-arm64.zip
+    runs-on: ${{ matrix.os }}
+    # runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.22.2"
 
-      - name: Install tools
-        run: |
-          # sudo apt update
-          sudo apt -y install make zip
+      # - name: Install tools
+      #   run: |
+      #     sudo apt -y update
+      #     sudo apt -y install make zip
+
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Build
         run: go build -v ./...
@@ -29,16 +43,24 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-      - name: Create binaries
-        if: startsWith(github.ref, 'refs/tags/')
-        run: make build
+      # - name: Create binaries
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   run: make build
+
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   with:
+      #     files: |
+      #       fsync-darwin-amd64.zip
+      #       fsync-darwin-arm64.zip
+      #       fsync-linux-amd64.zip
+      #       fsync-windows-amd64.zip
 
       - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: |
-            fsync-darwin-amd64.zip
-            fsync-darwin-arm64.zip
-            fsync-linux-amd64.zip
-            fsync-windows-amd64.zip
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: builds/${{ matrix.asset_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
