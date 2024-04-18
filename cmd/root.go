@@ -9,9 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var verboseFlag bool
-
-var deleteFlag bool
+var (
+	verboseFlag bool
+	deleteFlag  bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "fsync [flags] SRC DEST",
@@ -29,7 +30,7 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 
 		if verboseFlag {
 			fmt.Println("verbose:", verboseFlag)
-			// fmt.Println("delete:", deleteFlag)
+			fmt.Println("delete:", deleteFlag)
 			fmt.Println("Non-flag arguments:", args)
 			fmt.Println()
 		}
@@ -47,7 +48,6 @@ Attention! Use this tool on your own risk! Author is not responsible of synced f
 			os.Exit(1)
 		}
 		fmt.Println("Sync finished")
-		os.Exit(0)
 	},
 }
 

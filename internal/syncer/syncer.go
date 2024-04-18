@@ -22,6 +22,8 @@ type Syncer struct {
 	absoluteDestinationPath string
 }
 
+const TEMP_FILE_EXT = ".fsync-tmp"
+
 func (s *Syncer) Sync() error {
 	src, dst, err := s.normalizePaths(s.Source, s.Destination)
 	if err != nil {
@@ -77,7 +79,7 @@ func (s *Syncer) absolutePath(path string) (string, error) {
 func (s *Syncer) copy(src, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		if err = os.MkdirAll(dst, os.ModeDir); err != nil {
-			return fmt.Errorf("cannot create destination folder: %s", dst)
+			return fmt.Errorf("cannot create destination folder %s error: %s", dst, err.Error())
 		} else {
 			if s.VerboseFlag {
 				fmt.Println("Created destination folder:", dst)
@@ -92,7 +94,7 @@ func (s *Syncer) copy(src, dst string) error {
 	if srcInfo.IsDir() {
 		srcDirEntries, err := os.ReadDir(src)
 		if err != nil {
-			return fmt.Errorf("cannot get entries of source folder: %s", src)
+			return fmt.Errorf("cannot get entries of source folder %s error: %s", src, err.Error())
 		}
 
 		srcEntries := make(map[string]struct{})
@@ -100,7 +102,7 @@ func (s *Syncer) copy(src, dst string) error {
 		for _, dirEntry := range srcDirEntries {
 			entryInfo, err := dirEntry.Info()
 			if err != nil {
-				return fmt.Errorf("cannot get entry info: %s", dirEntry)
+				return fmt.Errorf("cannot get entry info %s error: %s", dirEntry, err.Error())
 			}
 
 			srcPath := filepath.Join(src, entryInfo.Name())
@@ -124,20 +126,20 @@ func (s *Syncer) copy(src, dst string) error {
 		if s.DeleteFlag {
 			dstDirEntries, err := os.ReadDir(dst)
 			if err != nil {
-				return fmt.Errorf("cannot get entries of destination folder: %s", dst)
+				return fmt.Errorf("cannot get entries of destination folder %s error: %s", dst, err.Error())
 			}
 
 			for _, dirEntry := range dstDirEntries {
 				entryInfo, err := dirEntry.Info()
 				if err != nil {
-					return fmt.Errorf("cannot get entry info: %s", dirEntry)
+					return fmt.Errorf("cannot get entry info %s error: %s", dirEntry, err.Error())
 				}
 
 				dstPath := filepath.Join(dst, entryInfo.Name())
 				relativePath := s.relativePath(s.absoluteDestinationPath, dstPath)
 				if _, ok := srcEntries[relativePath]; !ok {
 					if err = s.removeExtraneous(dstPath, dirEntry.IsDir()); err != nil {
-						return fmt.Errorf("cannot remove extraneous: %s error: %s", dstPath, err.Error())
+						return fmt.Errorf("cannot remove extraneous %s error: %s", dstPath, err.Error())
 					}
 					if s.VerboseFlag {
 						fmt.Println("Removed extraneous:", dstPath)
@@ -146,10 +148,14 @@ func (s *Syncer) copy(src, dst string) error {
 			}
 		}
 	} else {
-		dstPath := filepath.Join(dst, filepath.Base(src))
-		nBytes, err := s.copyFile(src, dstPath)
+		origDstPath := filepath.Join(dst, filepath.Base(src))
+		tempDstPath := origDstPath + TEMP_FILE_EXT
+		nBytes, err := s.copyFile(src, tempDstPath)
 		if err != nil {
-			return fmt.Errorf("cannot copy file %s to %s", src, dstPath)
+			return fmt.Errorf("cannot copy file %s to %s error: %s", src, tempDstPath, err.Error())
+		}
+		if err = os.Rename(tempDstPath, origDstPath); err != nil {
+			return fmt.Errorf("cannot rename file %s to %s error: %s", tempDstPath, origDstPath, err.Error())
 		}
 		if s.VerboseFlag {
 			fmt.Println("Copied file", s.relativePath(s.absoluteSourcePath, src), "-->", nBytes, "bytes")
