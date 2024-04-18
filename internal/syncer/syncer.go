@@ -87,11 +87,11 @@ func (s *Syncer) copy(src, dst string) error {
 		}
 	}
 
-	srcInfo, err := os.Stat(src)
+	srcFileInfo, err := os.Stat(src)
 	if err != nil {
 		return fmt.Errorf("cannot analyze source %s error: %s", src, err.Error())
 	}
-	if srcInfo.IsDir() {
+	if srcFileInfo.IsDir() {
 		srcDirEntries, err := os.ReadDir(src)
 		if err != nil {
 			return fmt.Errorf("cannot get entries of source folder %s error: %s", src, err.Error())
@@ -118,7 +118,7 @@ func (s *Syncer) copy(src, dst string) error {
 			}
 
 			if s.DeleteFlag {
-				relativePath := s.relativePath(s.absoluteDestinationPath, dstPath)
+				relativePath := s.relativePath(s.absoluteSourcePath, srcPath)
 				srcEntries[relativePath] = struct{}{}
 			}
 		}
@@ -149,6 +149,18 @@ func (s *Syncer) copy(src, dst string) error {
 		}
 	} else {
 		dstPath := filepath.Join(dst, filepath.Base(src))
+
+		if dstFileInfo, err := os.Stat(dstPath); err == nil && !dstFileInfo.IsDir() {
+			ok, err := s.ChecksumVerifier.Same(src, dstPath)
+			if err != nil {
+				return fmt.Errorf("cannot get checksum for file %s error: %s", dstPath, err.Error())
+			}
+			if ok {
+				fmt.Println("File", s.relativePath(s.absoluteDestinationPath, dstPath), "is up do date")
+				return nil
+			}
+		}
+
 		tempDstPath := dstPath + TEMP_FILE_EXT
 		nBytes, err := s.copyFile(src, tempDstPath)
 		if err != nil {
@@ -166,11 +178,11 @@ func (s *Syncer) copy(src, dst string) error {
 }
 
 func (s *Syncer) copyFile(src, dst string) (int64, error) {
-	sourceFileInfo, err := os.Stat(src)
+	srcFileInfo, err := os.Stat(src)
 	if err != nil {
 		return 0, err
 	}
-	if !sourceFileInfo.Mode().IsRegular() {
+	if !srcFileInfo.Mode().IsRegular() {
 		return 0, fmt.Errorf("%s is not a regular file", src)
 	}
 
