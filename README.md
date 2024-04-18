@@ -25,6 +25,16 @@ There is a great tool named `rsync`, but it might be not available (for example,
 For sure, [cwRsync](https://itefix.net/cwrsync) can be installed and happy used.
 But I'd like to have owns (even if it is much humbler featured).
 
+## How it works
+
+1. Validate `SRC` and `DEST` input arguments.
+1. Check file in `DEST` folder:
+   1. If file already exists - compare checksums of files and skip sync if equal.
+   1. If file not exists:
+      1. Copy `SRC` file to `DEST` temporary file.
+      1. Compare checksums of files and fail if they differ.
+      1. Rename `DEST` temporary file to `DEST` file.
+
 ## Development
 
 ### Update dependencies
