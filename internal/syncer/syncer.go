@@ -142,7 +142,7 @@ func (s *Syncer) copy(src, dst string) error {
 						return fmt.Errorf("cannot remove extraneous %s error: %s", dstPath, err.Error())
 					}
 					if s.VerboseFlag {
-						fmt.Println("Removed extraneous:", dstPath)
+						fmt.Println("Removed extraneous", relativePath)
 					}
 				}
 			}
