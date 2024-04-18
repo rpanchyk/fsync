@@ -118,7 +118,7 @@ func (s *Syncer) copy(src, dst string) error {
 			}
 
 			if s.DeleteFlag {
-				relativePath := s.relativePath(s.absoluteSourcePath, srcPath)
+				relativePath := s.relativePath(s.absoluteDestinationPath, dstPath)
 				srcEntries[relativePath] = struct{}{}
 			}
 		}
@@ -148,17 +148,17 @@ func (s *Syncer) copy(src, dst string) error {
 			}
 		}
 	} else {
-		origDstPath := filepath.Join(dst, filepath.Base(src))
-		tempDstPath := origDstPath + TEMP_FILE_EXT
+		dstPath := filepath.Join(dst, filepath.Base(src))
+		tempDstPath := dstPath + TEMP_FILE_EXT
 		nBytes, err := s.copyFile(src, tempDstPath)
 		if err != nil {
 			return fmt.Errorf("cannot copy file %s to %s error: %s", src, tempDstPath, err.Error())
 		}
-		if err = os.Rename(tempDstPath, origDstPath); err != nil {
-			return fmt.Errorf("cannot rename file %s to %s error: %s", tempDstPath, origDstPath, err.Error())
+		if err = os.Rename(tempDstPath, dstPath); err != nil {
+			return fmt.Errorf("cannot rename file %s to %s error: %s", tempDstPath, dstPath, err.Error())
 		}
 		if s.VerboseFlag {
-			fmt.Println("Copied file", s.relativePath(s.absoluteSourcePath, src), "-->", nBytes, "bytes")
+			fmt.Println("Copied file", s.relativePath(s.absoluteDestinationPath, dstPath), "-->", nBytes, "bytes")
 		}
 	}
 
